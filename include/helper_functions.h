@@ -97,4 +97,4 @@ void driveUntilDistance(pros::Distance& sensor, double threshold_in,
 void park();
 void score();
 void shakeBot(int durationMs);
-void score_ms();
+void score_ms(int ms);

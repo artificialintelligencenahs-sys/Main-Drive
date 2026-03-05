@@ -12,114 +12,54 @@ void tuning() {
 
 void swp() {
     chassis.setPose(0,0,90);
-    chassis.moveToPoint(30, 0, 1000);
-    chassis.turnToHeading(90, 800);
+    chassis.moveToPoint(30, 0, 750);
+    chassis.turnToHeading(180, 500,{},false);
+    Unloader.set_value(true);
+    Intake.move(-127);
+    chassis.moveToPoint(30, -100, 500,{.maxSpeed=50},false);
+    left_motors.move(30);
+    right_motors.move(30);
+    pros::delay(600);
+    left_motors.move(0);
+    right_motors.move(0);
+    chassis.moveToPoint(30, 30, 1000,{.forwards=false,.maxSpeed=70},false);
+    Intake.move(-127);
+    Outtake.move(127);
+    Unloader.set_value(false);
+    pros::delay(600);
+    Outtake.move(0);
+    chassis.moveToPoint(30, 12, 800,{.minSpeed=50,.earlyExitRange=1});
+    chassis.turnToPoint(7, 25, 800);
+    chassis.moveToPoint(7, 25, 1000);
+    chassis.turnToHeading(-80, 200,{.minSpeed=40});
+    chassis.turnToPoint(-40, 25, 500);
+    chassis.moveToPoint(-40, 25, 2550,{.minSpeed=50});
+    chassis.turnToHeading(225,700);
+    chassis.moveToPoint(-31.5, 37.5, 1250,{.forwards=false},false);
+    MidScoring.set_value(true);
+    Intake.move(-127);
+    Outtake.move(-127);
+    pros::delay(750);
+    Outtake.move(0);
+    chassis.moveToPoint(-68, 10, 2000);
+    chassis.turnToHeading(180, 500,{},false);
+    Unloader.set_value(true);
+    pros::delay(100);
+    chassis.moveToPoint(-68, -100, 500,{.maxSpeed=70},false);
+    left_motors.move(30);
+    right_motors.move(30);
+    pros::delay(600);
+    left_motors.move(0);
+    right_motors.move(0);
+    chassis.moveToPoint(-67, 30, 750,{.forwards=false,.maxSpeed=70},false);
+    Intake.move(-127);
+    Outtake.move(127);
+    Unloader.set_value(false);
 }
 
 
 
-
 void skills_auton() { 
-chassis.setPose(0, 0, 270);
-chassis.moveToPoint(-32.65, 5, 1550);
-chassis.turnToHeading(180, 500, {}, false);
-Unloader.set_value(true);
-Intake.move(-127);
-pros::delay(800);
-chassis.moveToPoint(-32.65, -17, 700, {.maxSpeed = 127}); // unload
-//shakeBot(800); //test
-pros::delay(3200); //1500 if double
-//chassis.moveToPoint(-32.5, -15, 700, {.forwards = false, .maxSpeed = 60});
-chassis.moveToPoint(-32.65, 5, 1550, {.forwards = false, .maxSpeed = 80}, false);
-Unloader.set_value(false);
-Intake.move(0);
-chassis.turnToHeading(90, 800);
-chassis.moveToPoint(-55, 5, 800, {.forwards = false, .minSpeed = 50},false); // align, mayb dec max speed so it doesn't rebound
-chassis.setPose(0,0,90);
-chassis.moveToPoint(3.25, 0, 800); //so if black field no wall ride, assuming nothing breaks
-chassis.turnToHeading(0, 800);
-chassis.moveToPoint(3.25, 90, 2500, {.maxSpeed = 80});
-chassis.turnToHeading(90, 1200);
-chassis.moveToPoint(-60, 90, 800, {.forwards = false, .minSpeed = 60},false); // align 
-chassis.setPose(0, 0, 0);
-chassis.moveToPoint(0, 18, 900); //18 is a test val, adjust as needed
-chassis.turnToHeading(-90, 800);
-chassis.moveToPoint(15, 18, 1000, {.forwards = false});
-//  chassis.moveToPoint(17,-20,1100,{.forwards=false},false); // go back to goal
-//  Outtake.move(-127);
-//  Intake.move(-127);
-//  Unloader.set_value(true);
-//  pros::delay(2000); // Reduce to minimum needed CLAUDE
-// left_motors.move(40); // Slightly faster
-// right_motors.move(40);
-// pros::delay(75); // Reduce (removed delay as 150-200 would be negative)
-// left_motors.brake();
-// right_motors.brake();
-// chassis.turnToHeading(0, 500);
-// Outtake.move(30); // test
-// chassis.moveToPoint(19, 40, 1100,{.maxSpeed=60}); //unload
-// pros::delay(2300);
-
-// chassis.moveToPose(16.5,-10,0,1400,{.forwards=false,.minSpeed=60},false); // go back to goal
-// chassis.turnToHeading(0, 750);
-// chassis.moveToPoint(16.5,-60,900,{.forwards=false,.maxSpeed=75},false); // go back to goal
-// Outtake.move(-127);
-// Unloader.set_value(false);
-// pros::delay(2000);
-// chassis.moveToPoint(16,-3,1000);
-// Outtake.move(0);
-// Intake.move(0);
-// chassis.turnToHeading(270,800);
-// chassis.moveToPose(115, -3, 270,2750,{.forwards=false});
-// chassis.moveToPose(150, -3, 270,1200,{.forwards=false,.maxSpeed=50},false);
-
-// chassis.setPose(0, 0, 270);
-// chassis.moveToPoint(-19, 0, 1000);
-// chassis.turnToHeading(0,800,{},false);
-// Unloader.set_value(true);
-// Intake.move(-127);
-// pros::delay(500);
-// chassis.moveToPoint(-19,200,600,{.maxSpeed=70}); //unload
-// pros::delay(2400);
-// chassis.moveToPoint(-19, -5, 1000,{.forwards=false},false);
-// Unloader.set_value(false);
-// Intake.move(0);
-// chassis.turnToHeading(270, 800);
-// chassis.moveToPoint(100, -5, 1000,{.forwards=false,.maxSpeed=60},false);
-// chassis.setPose(0,0,270);
-// chassis.swingToHeading(0, lemlib::DriveSide::RIGHT, 800,{},false); // turn
-// chassis.moveToPose(1, -95, 0,2500,{.forwards=false});
-// chassis.turnToHeading(270, 800);
-// chassis.moveToPoint(1000, -90, 800,{.forwards=false,.maxSpeed=60},false);
-// chassis.setPose(0,0,270);
-// chassis.moveToPoint(-17, 0, 1000);
-// chassis.turnToHeading(180,800);
-// chassis.moveToPoint(-17, 30, 1250,{.forwards=false,.maxSpeed=80},false);
-// Outtake.move(-127);
-// Intake.move(-127);
-// Unloader.set_value(true);
-// pros::delay(2000); // Reduce to minimum needed CLAUDE
-// Outtake.move(30);
-
-// chassis.turnToHeading(180, 500);
-// Outtake.move(30); // test
-// chassis.moveToPoint(-17, -40, 1250,{.maxSpeed=60}); //unload
-// pros::delay(2300);
-
-// chassis.moveToPoint(-17,0,1400,{.forwards=false,.minSpeed=60},false); // go back to goal
-// chassis.turnToHeading(180, 750);
-// chassis.moveToPose(-17,60,180,1100,{.forwards=false,.maxSpeed=70},false); // go back to goal
-// Outtake.move(-127);
-// Unloader.set_value(false);
-// pros::delay(2300);
-// chassis.setPose(0, 0, 0);
-// chassis.moveToPoint(0, 15, 1000);
-// chassis.moveToPoint(15, 15, 1000);
-// chassis.turnToHeading(180,1000);
-// chassis.moveToPoint(15, 60, 1500,{.forwards=false,.maxSpeed=70},false);
-// chassis.setPose(0,0,0);
-// chassis.turnToHeading(270,1000,{},false);
-// chassis.moveToPoint(-25, -5, 1300,{.minSpeed=100});
 
 }
 

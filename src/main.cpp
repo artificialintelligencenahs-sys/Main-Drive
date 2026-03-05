@@ -17,7 +17,7 @@ void disabled() {}
 void competition_initialize() {}
 
 void autonomous() {
-  int auton_selected = 8;
+  int auton_selected = 1;
   switch(auton_selected) {
     case 1:
       swp();
