@@ -77,6 +77,8 @@ void OuttakeControl::update(IntakeControl& intake) {
         if (comboMode) {
             velocity = 600;             // Outtake reverse
             Intake.move_velocity(-600);  // Intake reverse
+        } else if (intake.isReverseToggled()) {
+            velocity = -600;            // Outtake reverse
         }
         // If combo not active, velocity stays 0 (intake handled by IntakeControl)
     }

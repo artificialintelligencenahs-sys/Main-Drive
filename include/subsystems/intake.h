@@ -13,5 +13,6 @@ public:
     IntakeControl();
     void update(OuttakeControl& outtake);
     int getVelocity();
+    bool isReverseToggled() const { return toggleReverse; }
     void cancelToggles();
 };
