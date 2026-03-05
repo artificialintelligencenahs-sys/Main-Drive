@@ -71,17 +71,11 @@ lemlib::ControllerSettings angular_controller(.85,//kP
                                               0    // slew
 );
 
-// Add these BEFORE the chassis declaration
-//lemlib::ExpoDriveCurve throttle_curve(-1, 1, 1.15);
-//lemlib::ExpoDriveCurve steer_curve(-1, 1, 1.1);
-
-// create the chassis
+// create the chassis (no LemLib curve — we apply our own in opcontrol)
 lemlib::Chassis chassis(drivetrain,
                         lateral_controller,
                         angular_controller,
                         sensors
-                        //&throttle_curve,
-                        //&steer_curve
 );
 
 // --------------------- Motors ---------------------
