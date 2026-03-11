@@ -21,27 +21,13 @@ const double left_sensor_offset       = 5.8125;
 const double right_sensor_offset      = 5.8125;
 const double field_half_size          = 72.0;
 
-// ============================================================================
-// resetPositionAndHeadingBack
-// Resets BOTH position AND heading using two back-facing distance sensors.
-//
-// How it works:
-//   1. Reads both back sensors (left and right)
-//   2. Calculates the angle to the wall from the difference in readings
-//   3. Calculates the true perpendicular distance using cos(angle)
-//   4. Determines which wall we're facing using current heading
-//   5. Resets the appropriate axis (X or Y) to the corrected position
-//   6. Resets heading using the calculated wall angle
-//
-// IMPORTANT: Call this when the back of the robot is facing a wall.
-// Works best when roughly perpendicular — dual sensors correct for small angles.
-// ============================================================================
+
 void resetPositionAndHeadingBack(pros::Distance& back_left, pros::Distance& back_right,
                                   double sensor_spacing,
                                   double left_offset,   double right_offset,
                                   double field_half) {
 
-    double d_left  = back_left.get()  / 25.4; // mm to inches
+    double d_left  = (back_left.get()+19)  / 25.4; // mm to inches
     double d_right = back_right.get() / 25.4;
 
     // Validate readings
@@ -50,18 +36,18 @@ void resetPositionAndHeadingBack(pros::Distance& back_left, pros::Distance& back
         return;
     }
 
-    // Calculate angle to wall from the two sensor readings
-    // Positive angle = robot is rotated clockwise from perpendicular
+    // calculate angle to wall from the two sensor readings
+    // positive angle = robot is rotated clockwise from perpendicular
     double angle_to_wall_rad = atan2(d_right - d_left, sensor_spacing);
     double angle_to_wall_deg = angle_to_wall_rad * 180.0 / M_PI;
 
-    // Calculate corrected perpendicular distance
+    // calculate corrected perpendicular distance
     double avg_offset   = (left_offset + right_offset) / 2.0;
     double avg_reading  = (d_left + d_right) / 2.0;
     double corrected_distance = avg_reading * cos(angle_to_wall_rad) + avg_offset;
 
-    // Determine which wall the BACK of the robot is facing
-    // Back of robot = heading + 180°
+    // determine which wall the BACK of the robot is facing
+    // back of robot = heading + 180°
     lemlib::Pose pose = chassis.getPose();
     double back_heading_deg = pose.theta + 180.0;
     int headingDeg = ((int)back_heading_deg % 360 + 360) % 360;
@@ -71,42 +57,41 @@ void resetPositionAndHeadingBack(pros::Distance& back_left, pros::Distance& back
     double expected_perpendicular_heading = 0.0;
 
     if (headingDeg >= 315 || headingDeg <= 45) {
-        // Back faces top wall → reset Y (positive side)
+        // back faces top wall → reset Y (positive side)
         resettingX = false;
         wallSign   = 1.0;
         expected_perpendicular_heading = 180.0;
     }
     else if (headingDeg > 45 && headingDeg <= 135) {
-        // Back faces right wall → reset X (positive side)
+        // back faces right wall → reset X (positive side)
         resettingX = true;
         wallSign   = 1.0;
         expected_perpendicular_heading = 270.0;
     }
     else if (headingDeg > 135 && headingDeg <= 225) {
-        // Back faces bottom wall → reset Y (negative side)
+        // back faces bottom wall → reset Y (negative side)
         resettingX = false;
         wallSign   = -1.0;
         expected_perpendicular_heading = 0.0;
     }
     else {
-        // Back faces left wall → reset X (negative side)
+        // back faces left wall → reset X (negative side)
         resettingX = true;
         wallSign   = -1.0;
         expected_perpendicular_heading = 90.0;
     }
 
-    // Calculate corrected position
+    // calculate corrected position
     double actualPos = wallSign * (field_half - corrected_distance);
 
-    // Calculate corrected heading
-    // CW rotation moves right rear sensor closer → atan2(d_right - d_left) is negative for CW
-    // Subtracting the angle correctly converts to global heading
+    // calculate corrected heading
+    // subtracting the angle correctly converts to global heading
     double corrected_heading = expected_perpendicular_heading - angle_to_wall_deg;
 
-    // Normalize heading to 0-360
+    // normalize heading to 0-360
     corrected_heading = fmod(corrected_heading + 360, 360);
 
-    // Apply corrected pose — only update the relevant axis, keep the other
+    // apply corrected pose - only update the relevant axis, keep the other
     double new_x = resettingX ? actualPos : pose.x;
     double new_y = resettingX ? pose.y    : actualPos;
     chassis.setPose(new_x, new_y, corrected_heading);
@@ -115,15 +100,7 @@ void resetPositionAndHeadingBack(pros::Distance& back_left, pros::Distance& back
            actualPos, corrected_heading, angle_to_wall_deg);
 }
 
-// ============================================================================
-// resetPositionLeft
-// Resets position using a single left-facing distance sensor.
-// Uses trig correction (IMU heading) for more accurate results
-// when not perfectly perpendicular to the wall.
-// Only resets the appropriate axis (X or Y) based on which wall the sensor faces.
-//
-// IMPORTANT: Call this when the left side of the robot is facing a wall.
-// ============================================================================
+
 void resetPositionLeft(pros::Distance& sensor, double sensor_offset,
                        double field_half) {
 
@@ -164,15 +141,7 @@ void resetPositionLeft(pros::Distance& sensor, double sensor_offset,
     chassis.setPose(new_x, new_y, pose.theta);
 }
 
-// ============================================================================
-// resetPositionRight
-// Resets position using a single right-facing distance sensor.
-// Uses trig correction (IMU heading) for more accurate results
-// when not perfectly perpendicular to the wall.
-// Only resets the appropriate axis (X or Y) based on which wall the sensor faces.
-//
-// IMPORTANT: Call this when the right side of the robot is facing a wall.
-// ============================================================================
+
 void resetPositionRight(pros::Distance& sensor, double sensor_offset,
                         double field_half) {
 
@@ -212,21 +181,11 @@ void resetPositionRight(pros::Distance& sensor, double sensor_offset,
     chassis.setPose(new_x, new_y, pose.theta);
 }
 
-// ============================================================================
+
 // driveUntilDistance
-// Drives the robot until a distance sensor reads below a threshold, then stops.
-// Useful for lining up before calling a position reset.
-//
-// - sensor:       distance sensor facing the wall you're driving toward
-// - threshold_in: stop when sensor reads at or below this value (inches)
-// - speed:        motor speed 0-127 (default 60)
-// - forwards:     true = drive forward, false = drive backward
-// - timeout_ms:   emergency stop time in milliseconds (default 3000)
-//
-// EXAMPLE:
-//   driveUntilDistance(back_sensor_left, 3.0, 50, false, 3000);
-//   resetPositionAndHeadingBack(...);
-// ============================================================================
+// drives the robot until a distance sensor reads below a threshold, then stops.
+
+
 void driveUntilDistance(pros::Distance& sensor, double threshold_in,
                         int speed, bool forwards, int timeout_ms) {
 
@@ -253,12 +212,12 @@ void driveUntilDistance(pros::Distance& sensor, double threshold_in,
     chassis.tank(0, 0, true);
 }
 
-const double normal_motor_velocity = 650; 
+const double normal_motor_velocity = 625; 
 const double jam_threshold = 20;
 const int AVG_SIZE = 5;
 
 void score() {
-    Intake.move(-127);
+    Intake.move(-127); // move intake and outtake
     Outtake.move(127);
 
     pros::delay(500);
@@ -268,20 +227,22 @@ void score() {
 
     auto getAvgVelocity = [&]() {
         double sum = 0;
-        for (int i = 0; i < AVG_SIZE; i++) sum += velocityBuffer[i];
+        for (int i = 0; i < AVG_SIZE; i++) sum += velocityBuffer[i]; // list of 5 last velocity readings
         return sum / AVG_SIZE;
     };
 
+    uint32_t startTime = pros::millis(); // Timeout start
+
     while (true) {
-        velocityBuffer[bufferIndex] = std::abs(Intake.get_actual_velocity());
+        velocityBuffer[bufferIndex] = std::abs(Intake.get_actual_velocity()); // keeps iterating through list, replacing with last velocity
         bufferIndex = (bufferIndex + 1) % AVG_SIZE;
         double velocity = getAvgVelocity();
 
         // Unjam if velocity is hella low
         if (velocity <= jam_threshold) {
-            Intake.move(127);
-            Outtake.move(-127);
-            pros::delay(100);
+            Intake.move(96);
+            Outtake.move(-96);
+            pros::delay(150);
 
             Intake.move(-127);
             Outtake.move(127);
@@ -291,6 +252,11 @@ void score() {
         // All balls scored once velocity returns to normal
         if (velocity >= normal_motor_velocity) {
             pros::delay(1000);
+            break;
+        }
+
+        // Timeout — if scoring hasn't completed in 5 seconds, give up
+        if (pros::millis() - startTime >= 5000) {
             break;
         }
 
@@ -304,35 +270,42 @@ void score() {
 
 
 void park() {
+    chassis.cancelMotion();
     optical_sensor.set_led_pwm(100);
     Intake.move(-127);
-    Outtake.move(127);
-    // Move forward at full speed
-    chassis.arcade(100, 0);
-    
-    // Keep moving until red is detected
+
     while (true) {
-        double hue = optical_sensor.get_hue();
-        
-        // Check for red hue
-        if ((hue > 350 || hue < 15)) {
-            break;
+        // move forward
+        chassis.arcade(67, 0);
+        uint32_t startTime = pros::millis();
+        bool redDetected = false;
+        // keep moving until red is detected or 5 seconds pass
+        while (true) {
+            double hue = optical_sensor.get_hue();
+            if (hue > 350 || hue < 20) {
+                redDetected = true;
+                break;
+            }
+            // if 5 seconds have passed without detecting red
+            if (pros::millis() - startTime >= 5000) {
+                break;
+            }
+            pros::delay(10);
         }
-        pros::delay(10);
+        if (redDetected) {
+            break; // exit outer loop, red present
+        }
+        // red not found - reverse for 1 second and try again
+        chassis.arcade(-67, 0);
+        pros::delay(500);
+        chassis.arcade(0, 0);
+        pros::delay(100); // brief pause before retrying
     }
-    
-    pros::delay(150);
-    
     // Stop the bot
     chassis.arcade(0, 0);
 }
 
-/**
- * Shakes the bot left and right (~5 degrees each direction) for the given
- * duration in milliseconds. Useful for unsticking balls during unloading.
- *
- * Usage: shakeBot(2000);  // shake for 2 seconds while unloading
- */
+
 void shakeBot(int durationMs) {
   const int SHAKE_POWER = 35;     // motor power for each shake (tune if needed)
   const int SHAKE_INTERVAL = 100; // ms per half-cycle (left or right)
@@ -340,18 +313,18 @@ void shakeBot(int durationMs) {
   uint32_t startTime = pros::millis();
 
   while ((pros::millis() - startTime) < (uint32_t)durationMs) {
-    // Turn left: left motors backward, right motors forward
+    // left motors backward right motors forward
     left_motors.move(-SHAKE_POWER);
     right_motors.move(SHAKE_POWER);
     pros::delay(SHAKE_INTERVAL);
 
-    // Turn right: left motors forward, right motors backward
+    // left motors forward, right motors backward
     left_motors.move(SHAKE_POWER);
     right_motors.move(-SHAKE_POWER);
     pros::delay(SHAKE_INTERVAL);
   }
 
-  // Stop and settle
+  // stop
   left_motors.brake();
   right_motors.brake();
 }

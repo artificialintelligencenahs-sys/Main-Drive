@@ -7,3 +7,4 @@ void rightAuton();
 void leftAuton_descore();
 void swp();
 void tuning();
+void distanceresettest();

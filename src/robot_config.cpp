@@ -60,7 +60,7 @@ lemlib::ControllerSettings lateral_controller(4.3,   // kP
 
 
 // angular PID controller - TUNED
-lemlib::ControllerSettings angular_controller(.85,//kP
+lemlib::ControllerSettings angular_controller(.86,//kP
                                               0,   // kI
                                               0.2, //kD
                                               3,   // anti windup - ENABLE

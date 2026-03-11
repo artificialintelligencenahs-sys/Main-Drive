@@ -20,16 +20,25 @@ void competition_initialize() {}
 // deadband:  stick values at or below this output exactly 0
 // minOutput: motor value the instant the stick crosses the deadband
 // gain:      1.0 = linear, 1.5 = gentle curve, 2.0+ = more low-speed precision
-static float driveCurve(float input, float deadband = 5, float minOutput = 10, float gain = 1.15) {
+static float driveCurve(float input, float deadband = 5, float minOutput = 15, float gain = 1.3) {
     if (std::fabs(input) <= deadband) return 0;
     float sign   = input > 0 ? 1.0f : -1.0f;
     float x      = (std::fabs(input) - deadband) / (127.0f - deadband);
     float curved = std::pow(x, gain);
     return sign * (minOutput + (127.0f - minOutput) * curved);
 }
+void printPoseTask(void*) {
+  while (true) {
+    lemlib::Pose pose = chassis.getPose();
+    master.print(0, 0, "X:%.1f Y:%.1f", pose.x, pose.y);
+    pros::delay(200); // controller screen can't update faster than ~50-200ms
+    master.print(1, 0, "H:%.1f        ", pose.theta);
+    pros::delay(200);
+  }
+}
 
 void autonomous() {
-  int auton_selected = 1;
+  int auton_selected = 2;
   switch(auton_selected) {
     case 1:
       swp();
@@ -54,8 +63,11 @@ void autonomous() {
       break;
     case 8:
       tuning();
-    case 9:
       break;
+    case 9:
+      distanceresettest();
+      break;
+      
 
   }
 }
