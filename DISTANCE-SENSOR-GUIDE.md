@@ -4,14 +4,15 @@ This guide covers how to set up and use the distance sensor position + heading r
 
 ## Your Sensor Layout
 
+```text
               Front (no sensor)
                     ↑
                     |
-
 Left (1 sensor) ← 🤖 → Right (1 sensor)
-|
-↓ ↓ ↓
-Back Left Back Right (2 sensors)
+                    |
+              ↓  ↓  ↓
+        Back Left  Back Right  (2 sensors)
+```
 
 - **Back**: 2 sensors → resets position AND heading
 - **Left / Right**: 1 sensor each → resets position only (with trig correction)
@@ -138,3 +139,37 @@ resetPositionRight(right_sensor, right_sensor_offset, field_half_size);
 | "Invalid sensor reading" in terminal                     | Sensor might not be detecting a wall. Make sure it's pointing at a flat surface and within range (0-200 inches).                                 |
 | Position resets X when it should reset Y (or vice versa) | Check that the robot is actually facing the wall you think it is — the code uses current heading to determine which field wall it is looking at. |
 | Side resets are slightly off                             | This is normal for single-sensor resets — they depend entirely on IMU heading accuracy.                                                          |
+
+## When to Use Resets
+
+| Situation                         | What to Call                                                |
+| :-------------------------------- | :---------------------------------------------------------- |
+| Backing into a wall (most common) | `driveUntilDistance(...)` → `resetPositionAndHeadingBack()` |
+| Side is along a wall              | `resetPositionLeft()` or `resetPositionRight()`             |
+| After a long sequence of moves    | Back into nearest wall → dual reset                         |
+| At the start of skills autonomous | Back into starting wall → dual reset                        |
+
+## How the Math Works (Optional)
+
+### Dual Back Sensor Heading Calculation
+
+```text
+     ├──── spacing ────┤
+     [sensorL]    [sensorR]
+       d_left ↕      ↕ d_right
+Wall ─────────────────────────
+```
+
+```cpp
+angle_to_wall = atan2(d_right - d_left, spacing)
+```
+
+If both sensors read the same distance, the angle is 0° (perfectly perpendicular). If the right sensor reads farther, the robot is rotated counter-clockwise.
+
+### Trig Correction for Distance
+
+```cpp
+true_perpendicular_distance = raw_reading * cos(angle_off_perpendicular)
+```
+
+When you're at 5° off perpendicular, `cos(5°)` = 0.996 — so the raw reading is only 0.4% too long. At 10°, it's 1.5% too long. The correction handles this automatically.
